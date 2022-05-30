@@ -3,10 +3,11 @@ import time
 import random
 import eyed3
 import RPi.GPIO as GPIO
+import serial
 from pygame.locals import *
 from pygame.compat import geterror
 from pygame import mixer
-# Define buttons
+# Configure GPIO
 btn1 = 23 #w
 btn2 = 24 #a
 btn3 = 25 #s
@@ -17,6 +18,13 @@ GPIO.setup(btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(btn4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+#UART configuration
+ser=serial.Serial(
+port='/dev/ttyACM0',
+baudrate= 9600,
+parity= serial.PARITY_NONE,
+stopbits= serial.STOPBITS_ONE,
+bytesize= serial.EIGHTBITS,timeout=1)
 #Window Size
 window_x = 800
 window_y = 600
@@ -158,6 +166,21 @@ GPIO.add_event_detect(btn3,GPIO.FALLING,callback=button3_callback) #Button press
 GPIO.add_event_detect(btn4,GPIO.FALLING,callback=button4_callback) #Button pressed event
     
 while True:
+    player2Button = ser.readline(ser.in_waiting)
+    print(player2Button)
+    if (player2Button == b'w\r\n'):
+        lightCycle2.movement_Up()
+        lightCycle2.movement_restriction(lightCycle2.direction)           
+    if (player2Button == b's\r\n'):
+        lightCycle2.movement_Down()
+        lightCycle2.movement_restriction(lightCycle2.direction)
+    if (player2Button == b'a\r\n'):
+        lightCycle2.movement_Left()
+        lightCycle2.movement_restriction(lightCycle2.direction)
+    if (player2Button == b'd\r\n'):
+        lightCycle2.movement_Right()
+        lightCycle2.movement_restriction(lightCycle2.direction)
+    #player2Button = ""
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
@@ -173,16 +196,16 @@ while True:
                 lightCycle1.movement_Right()
                 lightCycle1.movement_restriction(lightCycle1.direction)
               
-            if event.key == pygame.K_i:
+            if event.key == pygame.K_i or player2Button == "w\r\n":
                 lightCycle2.movement_Up()
                 lightCycle2.movement_restriction(lightCycle2.direction)           
-            if event.key == pygame.K_k:
+            if event.key == pygame.K_k or player2Button == "s\r\n":
                 lightCycle2.movement_Down()
                 lightCycle2.movement_restriction(lightCycle2.direction)
-            if event.key == pygame.K_j:
+            if event.key == pygame.K_j or player2Button == "a\r\n":
                 lightCycle2.movement_Left()
                 lightCycle2.movement_restriction(lightCycle2.direction)
-            if event.key == pygame.K_l:
+            if event.key == pygame.K_l or player2Button == "d\r\n":
                 lightCycle2.movement_Right()
                 lightCycle2.movement_restriction(lightCycle2.direction)
  # LightCycle movement
