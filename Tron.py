@@ -2,10 +2,21 @@ import pygame
 import time
 import random
 import eyed3
+import RPi.GPIO as GPIO
 from pygame.locals import *
 from pygame.compat import geterror
 from pygame import mixer
-
+# Define buttons
+btn1 = 23 #w
+btn2 = 24 #a
+btn3 = 25 #s
+btn4 = 26 #d
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(btn1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(btn2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(btn3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(btn4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 #Window Size
 window_x = 800
 window_y = 600
@@ -124,13 +135,31 @@ def winner(player):
     pygame.quit()
     quit()
 
+def button1_callback(channel):
+    lightCycle1.movement_Up()
+    lightCycle1.movement_restriction(lightCycle1.direction)
+
+def button2_callback(channel):
+    lightCycle1.movement_Left()
+    lightCycle1.movement_restriction(lightCycle1.direction)
+def button3_callback(channel):
+    lightCycle1.movement_Down()
+    lightCycle1.movement_restriction(lightCycle1.direction) 
+def button4_callback(channel):
+    lightCycle1.movement_Right()
+    lightCycle1.movement_restriction(lightCycle2.direction)
+
 lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3)
 lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3)
 
+GPIO.add_event_detect(btn1,GPIO.FALLING,callback=button1_callback) #Button pressed event
+GPIO.add_event_detect(btn2,GPIO.FALLING,callback=button2_callback) #Button pressed event
+GPIO.add_event_detect(btn3,GPIO.FALLING,callback=button3_callback) #Button pressed event
+GPIO.add_event_detect(btn4,GPIO.FALLING,callback=button4_callback) #Button pressed event
+    
 while True:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            
             if event.key == pygame.K_w:
                 lightCycle1.movement_Up()
                 lightCycle1.movement_restriction(lightCycle1.direction)
@@ -156,7 +185,6 @@ while True:
             if event.key == pygame.K_l:
                 lightCycle2.movement_Right()
                 lightCycle2.movement_restriction(lightCycle2.direction)
-    
  # LightCycle movement
     lightCycle1.light()
     lightCycle2.light()
