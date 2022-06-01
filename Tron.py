@@ -1,4 +1,4 @@
-import pygame
+import os, pygame
 import time
 import random
 import eyed3
@@ -26,9 +26,48 @@ baudrate= 9600,
 parity= serial.PARITY_NONE,
 stopbits= serial.STOPBITS_ONE,
 bytesize= serial.EIGHTBITS,timeout=1)
+
+#//////////////////////////////////////////////////////
+#Carga imagenes para su uso
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+data_dir = os.path.join(main_dir, '/home/drigor130/Documentos/ActIntegradora')
+
+def loadImage(name, colorkey=None):
+    fullname = os.path.join(data_dir, name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error:
+        print ('Cannot load image:', fullname)
+        raise SystemExit(str(geterror()))
+    image = image.convert()
+    if colorkey is not None:
+        if colorkey is -1:
+            colorkey = image.get_at((0,0))
+        image.set_colorkey(colorkey, RLEACCEL)
+    return image, image.get_rect()
+#//////////////////////////////////////////////////////
+
+#functions to create our resources
+def load_image(name, colorkey=None):
+    fullname = os.path.join(data_dir, name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error:
+        print ('Cannot load image:', fullname)
+        raise SystemExit(str(geterror()))
+    image = image.convert()
+    if colorkey is not None:
+        if colorkey is -1:
+            colorkey = image.get_at((0,0))
+        image.set_colorkey(colorkey, RLEACCEL)
+    return image, image.get_rect()
+
+
 #Window Size
-window_x = 800
-window_y = 600
+global window_x
+window_x = 1200
+global window_y
+window_y = 800
 # defining colors
 black = pygame.Color(0, 0, 0)
 white = pygame.Color(255, 255, 255)
@@ -37,11 +76,12 @@ cycle2_color = pygame.Color(255,110,74)
 
 #Pygame init
 pygame.init()
-cycle_speed = 15
-cycle1_position = [400, 50]
-cycle2_position = [400, 550]
-cycle1_body = [[400, 50],[400, 40]]
-cycle2_body = [[400, 550],[400, 560]]
+cube_size = 6 #Size of each body element
+cycle_speed = 30
+cycle1_position = [window_x/2, 50]
+cycle2_position = [window_x/2, window_y - 50]
+cycle1_body = [[window_x/2, 50],[window_x/2, 50 - cube_size]]
+cycle2_body = [[window_x/2, window_y - 50],[window_x/2, window_y - 50 + cube_size]]
 cycle1_direction = 'DOWN'   #Initial Direction
 cycle2_direction = 'UP'     #Initial Direction
 game_window = pygame.display.set_mode((window_x, window_y))
@@ -49,14 +89,17 @@ fps = pygame.time.Clock()
 
 class lightCycle ():
 
-    def __init__(self, position, body, direction, change_to, color, hearts):
+    def __init__(self, position, body, direction, change_to, color, hearts, cube_size):
       self.position = position
       self.body = body
       self.direction = direction
       self.change_to = change_to
       self.color = color
       self.hearts = hearts
+      self.cube_size = cube_size
       
+
+
     def movementRight(self):
       self.change_to = 'RIGHT'
     
@@ -80,19 +123,28 @@ class lightCycle ():
           self.direction = 'RIGHT'
     
     def light(self):
+        movementSize = 5
         if self.direction == 'UP':
-            self.position[1] -= 10
+            self.position[1] -= movementSize
             self.body.insert(0, list(self.position))
         if self.direction == 'DOWN':
-            self.position[1] += 10
+            self.position[1] += movementSize
             self.body.insert(0, list(self.position))
         if self.direction == 'LEFT':
-            self.position[0] -= 10
+            self.position[0] -= movementSize
             self.body.insert(0, list(self.position))
         if self.direction == 'RIGHT':
-            self.position[0] += 10
+            self.position[0] += movementSize
             self.body.insert(0, list(self.position))
-            
+    
+    def verticalLight(self):
+        pygame.draw.rect(game_window, self.color, pygame.Rect(pos[0], pos[1], self.cube_size, self.cube_size))
+        pygame.draw.rect(game_window, white, pygame.Rect(pos[0] + self.cube_size / 3, pos[1], self.cube_size / 3, self.cube_size))
+        
+    def horizontalLight(self):
+        pygame.draw.rect(game_window, self.color, pygame.Rect(pos[0], pos[1], self.cube_size, self.cube_size))
+        pygame.draw.rect(game_window, white, pygame.Rect(pos[0], pos[1] + self.cube_size / 3, self.cube_size, self.cube_size / 3))
+        
     def updateCycle(self, position, body, direction, change_to, color):
         pygame.init()
         self.position = position
@@ -112,10 +164,10 @@ def showScore(choice, color, font, size):
     game_window.blit(score_surface, score_rect)   
     
 def gameOver(looser):
-    cycle1_position = [400, 50]
-    cycle2_position = [400, 550]
-    cycle1_body = [[400, 50],[400, 40]]
-    cycle2_body = [[400, 550],[400, 560]]
+    cycle1_position = [window_x/2, 50]
+    cycle2_position = [window_x/2, window_y - 50]
+    cycle1_body = [[window_x/2, 50],[window_x/2, 50 - lightCycle1.cube_size]]
+    cycle2_body = [[window_x/2, window_y - 50],[window_x/2, window_y - 50 + lightCycle1.cube_size]]
     cycle1_direction = 'DOWN'   #Initial Direction
     cycle2_direction = 'UP'     #Initial Direction
     if looser:
@@ -159,8 +211,8 @@ def button4_callback(channel):
     lightCycle1.movementRight()
     lightCycle1.movementRestriction(lightCycle2.direction)
 
-lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3)
-lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3)
+lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3, cube_size)
+lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3, cube_size)
 
 GPIO.add_event_detect(btn1,GPIO.FALLING,callback=button1_callback) #Button pressed event
 GPIO.add_event_detect(btn2,GPIO.FALLING,callback=button2_callback) #Button pressed event
@@ -215,22 +267,22 @@ while True:
     lightCycle1.light()
     lightCycle2.light()
     
-    for pos in lightCycle1.body:
-        pygame.draw.rect(game_window, lightCycle1.color, pygame.Rect(pos[0], pos[1], 10, 10))
-    for pos in lightCycle2.body:
-        pygame.draw.rect(game_window, lightCycle2.color, pygame.Rect(pos[0], pos[1], 10, 10))
 
+    for pos in lightCycle1.body:
+        pygame.draw.rect(game_window, lightCycle1.color, pygame.Rect(pos[0], pos[1], cube_size, cube_size))
+    for pos in lightCycle2.body:
+        pygame.draw.rect(game_window, lightCycle2.color, pygame.Rect(pos[0], pos[1], cube_size, cube_size))
     # Game Over conditions LightCycle 1
     # 1 False
     # 2 True
-    if lightCycle1.position[0] < 0 or lightCycle1.position[0] > window_x-10:
+    if lightCycle1.position[0] < 0 or lightCycle1.position[0] > window_x-cube_size:
         gameOver(False)
-    if lightCycle1.position[1] < 0 or lightCycle1.position[1]  > window_y-10:
+    if lightCycle1.position[1] < 0 or lightCycle1.position[1]  > window_y-cube_size:
         gameOver(False)
     # Game Over conditions LightCycle 2  
-    if lightCycle2.position[0] < 0 or lightCycle2.position[0] > window_x-10:
+    if lightCycle2.position[0] < 0 or lightCycle2.position[0] > window_x-cube_size:
         gameOver(True)
-    if lightCycle2.position[1] < 0 or lightCycle2.position[1]  > window_y-10:
+    if lightCycle2.position[1] < 0 or lightCycle2.position[1]  > window_y-cube_size:
         gameOver(True)
     
      # Touching the snake body
@@ -243,7 +295,7 @@ while True:
             break
             
     for block in lightCycle2.body[1:]:
-        if lightCycle2.position[0] == block[0] and lightCycle2.position[1] == block[1]:
+        if (lightCycle2.position[0] == block[0]) and lightCycle2.position[1] == block[1]:
             gameOver(True)
             break
         if lightCycle1.position[0] == block[0] and lightCycle1.position[1] == block[1]:
