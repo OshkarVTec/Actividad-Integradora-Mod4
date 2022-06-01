@@ -4,6 +4,7 @@ import random
 import eyed3
 import RPi.GPIO as GPIO
 import serial
+import IntegradoraMod4OLED
 from pygame.locals import *
 from pygame.compat import geterror
 from pygame import mixer
@@ -56,19 +57,19 @@ class lightCycle ():
       self.color = color
       self.hearts = hearts
       
-    def movement_Right(self):
+    def movementRight(self):
       self.change_to = 'RIGHT'
     
-    def movement_Left(self):
+    def movementLeft(self):
       self.change_to = 'LEFT'
       
-    def movement_Up(self):
+    def movementUp(self):
       self.change_to = 'UP'
       
-    def movement_Down(self):
+    def movementDown(self):
       self.change_to = 'DOWN'
 
-    def movement_restriction(self, direction):
+    def movementRestriction(self, direction):
       if self.change_to == 'UP' and self.direction != 'DOWN':
           self.direction = 'UP'
       if self.change_to == 'DOWN' and self.direction != 'UP':
@@ -92,7 +93,7 @@ class lightCycle ():
             self.position[0] += 10
             self.body.insert(0, list(self.position))
             
-    def update_cycle(self, position, body, direction, change_to, color):
+    def updateCycle(self, position, body, direction, change_to, color):
         pygame.init()
         self.position = position
         self.body = body
@@ -104,13 +105,13 @@ class lightCycle ():
         time.sleep(1)
 
 score = 0
-def show_score(choice, color, font, size):  
+def showScore(choice, color, font, size):  
     score_font = pygame.font.SysFont(font, size)
     score_surface = score_font.render('Score : ' + str(score), True, color)
     score_rect = score_surface.get_rect()
     game_window.blit(score_surface, score_rect)   
     
-def game_over(looser):
+def gameOver(looser):
     cycle1_position = [400, 50]
     cycle2_position = [400, 550]
     cycle1_body = [[400, 50],[400, 40]]
@@ -121,41 +122,42 @@ def game_over(looser):
         lightCycle2.hearts -= 1
     else:
         lightCycle1.hearts -= 1
+    IntegradoraMod4OLED.displayOLED(lightCycle1.hearts, lightCycle2.hearts)
     if (lightCycle2.hearts == 0):
         winner(False) #False = jugador 1 ganador
     if (lightCycle1.hearts == 0):
         winner(True) #True = jugador 2 ganador
-    lightCycle1.update_cycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color)
-    lightCycle2.update_cycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color)
+    lightCycle1.updateCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color)
+    lightCycle2.updateCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color)
     
 def winner(player):
     my_font = pygame.font.SysFont('calibri', 50)
     if player:
-        game_over_surface = my_font.render('Winner: Player 2', True, white)
+        gameOver_surface = my_font.render('Winner: Player 2', True, white)
     else:
-        game_over_surface = my_font.render('Winner: Player 1', True, white)
+        gameOver_surface = my_font.render('Winner: Player 1', True, white)
     # creating a text surface on which text will be drawn
-    game_over_rect = game_over_surface.get_rect()
-    game_over_rect.midtop = (window_x/2, window_y/2)
-    game_window.blit(game_over_surface, game_over_rect)
+    gameOver_rect = gameOver_surface.get_rect()
+    gameOver_rect.midtop = (window_x/2, window_y/2)
+    game_window.blit(gameOver_surface, gameOver_rect)
     pygame.display.flip() 
     time.sleep(5)
     pygame.quit()
     quit()
 
 def button1_callback(channel):
-    lightCycle1.movement_Up()
-    lightCycle1.movement_restriction(lightCycle1.direction)
+    lightCycle1.movementUp()
+    lightCycle1.movementRestriction(lightCycle1.direction)
 
 def button2_callback(channel):
-    lightCycle1.movement_Left()
-    lightCycle1.movement_restriction(lightCycle1.direction)
+    lightCycle1.movementLeft()
+    lightCycle1.movementRestriction(lightCycle1.direction)
 def button3_callback(channel):
-    lightCycle1.movement_Down()
-    lightCycle1.movement_restriction(lightCycle1.direction) 
+    lightCycle1.movementDown()
+    lightCycle1.movementRestriction(lightCycle1.direction) 
 def button4_callback(channel):
-    lightCycle1.movement_Right()
-    lightCycle1.movement_restriction(lightCycle2.direction)
+    lightCycle1.movementRight()
+    lightCycle1.movementRestriction(lightCycle2.direction)
 
 lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3)
 lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3)
@@ -164,50 +166,51 @@ GPIO.add_event_detect(btn1,GPIO.FALLING,callback=button1_callback) #Button press
 GPIO.add_event_detect(btn2,GPIO.FALLING,callback=button2_callback) #Button pressed event
 GPIO.add_event_detect(btn3,GPIO.FALLING,callback=button3_callback) #Button pressed event
 GPIO.add_event_detect(btn4,GPIO.FALLING,callback=button4_callback) #Button pressed event
-    
+
+IntegradoraMod4OLED.displayOLED(lightCycle1.hearts, lightCycle2.hearts)
+
 while True:
     player2Button = ser.readline(ser.in_waiting)
-    print(player2Button)
     if (player2Button == b'w\r\n'):
-        lightCycle2.movement_Up()
-        lightCycle2.movement_restriction(lightCycle2.direction)           
+        lightCycle2.movementUp()
+        lightCycle2.movementRestriction(lightCycle2.direction)           
     if (player2Button == b's\r\n'):
-        lightCycle2.movement_Down()
-        lightCycle2.movement_restriction(lightCycle2.direction)
+        lightCycle2.movementDown()
+        lightCycle2.movementRestriction(lightCycle2.direction)
     if (player2Button == b'a\r\n'):
-        lightCycle2.movement_Left()
-        lightCycle2.movement_restriction(lightCycle2.direction)
+        lightCycle2.movementLeft()
+        lightCycle2.movementRestriction(lightCycle2.direction)
     if (player2Button == b'd\r\n'):
-        lightCycle2.movement_Right()
-        lightCycle2.movement_restriction(lightCycle2.direction)
+        lightCycle2.movementRight()
+        lightCycle2.movementRestriction(lightCycle2.direction)
     #player2Button = ""
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                lightCycle1.movement_Up()
-                lightCycle1.movement_restriction(lightCycle1.direction)
+                lightCycle1.movementUp()
+                lightCycle1.movementRestriction(lightCycle1.direction)
             if event.key == pygame.K_s:
-                lightCycle1.movement_Down()
-                lightCycle1.movement_restriction(lightCycle1.direction)
+                lightCycle1.movementDown()
+                lightCycle1.movementRestriction(lightCycle1.direction)
             if event.key == pygame.K_a:
-                lightCycle1.movement_Left()
-                lightCycle1.movement_restriction(lightCycle1.direction) 
+                lightCycle1.movementLeft()
+                lightCycle1.movementRestriction(lightCycle1.direction) 
             if event.key == pygame.K_d:
-                lightCycle1.movement_Right()
-                lightCycle1.movement_restriction(lightCycle1.direction)
+                lightCycle1.movementRight()
+                lightCycle1.movementRestriction(lightCycle1.direction)
               
             if event.key == pygame.K_i or player2Button == "w\r\n":
-                lightCycle2.movement_Up()
-                lightCycle2.movement_restriction(lightCycle2.direction)           
+                lightCycle2.movementUp()
+                lightCycle2.movementRestriction(lightCycle2.direction)           
             if event.key == pygame.K_k or player2Button == "s\r\n":
-                lightCycle2.movement_Down()
-                lightCycle2.movement_restriction(lightCycle2.direction)
+                lightCycle2.movementDown()
+                lightCycle2.movementRestriction(lightCycle2.direction)
             if event.key == pygame.K_j or player2Button == "a\r\n":
-                lightCycle2.movement_Left()
-                lightCycle2.movement_restriction(lightCycle2.direction)
+                lightCycle2.movementLeft()
+                lightCycle2.movementRestriction(lightCycle2.direction)
             if event.key == pygame.K_l or player2Button == "d\r\n":
-                lightCycle2.movement_Right()
-                lightCycle2.movement_restriction(lightCycle2.direction)
+                lightCycle2.movementRight()
+                lightCycle2.movementRestriction(lightCycle2.direction)
  # LightCycle movement
     lightCycle1.light()
     lightCycle2.light()
@@ -221,30 +224,30 @@ while True:
     # 1 False
     # 2 True
     if lightCycle1.position[0] < 0 or lightCycle1.position[0] > window_x-10:
-        game_over(False)
+        gameOver(False)
     if lightCycle1.position[1] < 0 or lightCycle1.position[1]  > window_y-10:
-        game_over(False)
+        gameOver(False)
     # Game Over conditions LightCycle 2  
     if lightCycle2.position[0] < 0 or lightCycle2.position[0] > window_x-10:
-        game_over(True)
+        gameOver(True)
     if lightCycle2.position[1] < 0 or lightCycle2.position[1]  > window_y-10:
-        game_over(True)
+        gameOver(True)
     
      # Touching the snake body
     for block in lightCycle1.body[1:]:
         if lightCycle1.position[0] == block[0] and lightCycle1.position[1] == block[1]:
-            game_over(False)
+            gameOver(False)
             break
         if lightCycle2.position[0] == block[0] and lightCycle2.position[1] == block[1]:
-            game_over(True)
+            gameOver(True)
             break
             
     for block in lightCycle2.body[1:]:
         if lightCycle2.position[0] == block[0] and lightCycle2.position[1] == block[1]:
-            game_over(True)
+            gameOver(True)
             break
         if lightCycle1.position[0] == block[0] and lightCycle1.position[1] == block[1]:
-            game_over(False)
+            gameOver(False)
             break
  
     # Refresh game screen
