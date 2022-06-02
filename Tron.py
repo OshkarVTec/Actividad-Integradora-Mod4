@@ -68,7 +68,7 @@ cycle2_sprites = ["cycle2_0.jpeg", "cycle2_1.jpeg", "cycle2_2.jpeg", "cycle2_3.j
 #Pygame init
 pygame.init()
 cube_size = 5 #Size of each body element
-cycle_speed = 10
+cycle_speed = 40
 cycle1_position = [window_x//2, 50]
 cycle2_position = [window_x//2, window_y - 50]
 cycle1_body = [[window_x//2, 50],[window_x//2, 50 - cube_size]]
@@ -193,11 +193,24 @@ class lightCycle (pygame.sprite.Sprite):
 
 def start():
     my_font = pygame.font.SysFont('calibri', 50)
-    press_key_text = my_font.render('Press r to start', True, white)
+    title_font = pygame.font.SysFont('liberationsans', 200)
+    title = title_font.render('T R O N', True, cycle1_color)
+    press_key_text = my_font.render('Press r to start', True, cycle2_color)
+    names = my_font.render('Diego Garcia            Oskar Villa', True, white)
+    
     # creating a text surface on which text will be drawn
+    title_rect = title.get_rect()
+    title_rect.midtop = (window_x//2, window_y//3)
+    game_window.blit(title, title_rect)
+    
     press_rect = press_key_text.get_rect()
-    press_rect.midtop = (window_x//2, window_y - window_y // 4)
+    press_rect.midtop = (window_x//2, window_y - window_y // 3)
     game_window.blit(press_key_text, press_rect)
+    
+    names_rect = names.get_rect()
+    names_rect.midtop = (window_x//2, window_y - window_y // 5)
+    game_window.blit(names, names_rect)
+    
     pygame.display.flip()
     playAgain()
 
