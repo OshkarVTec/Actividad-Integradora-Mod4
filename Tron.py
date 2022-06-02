@@ -168,7 +168,6 @@ class lightCycle (pygame.sprite.Sprite):
         allsprites.update()
         game_window.blit(game_window, (0, 0))
         allsprites.draw(game_window)
-        print(self.body)
         #//////////////////////////////////////////////////////////
         # Refresh game screen
         pygame.display.flip()
@@ -195,12 +194,18 @@ def start():
     my_font = pygame.font.SysFont('calibri', 50)
     title_font = pygame.font.SysFont('liberationsans', 200)
     title = title_font.render('T R O N', True, cycle1_color)
-    press_key_text = my_font.render('Press r to start', True, cycle2_color)
-    names = my_font.render('Diego Garcia            Oskar Villa', True, white)
+    press_key_text = my_font.render('PRESS r TO START', True, white)
+    names = my_font.render('DIEGO GARCIA            OSKAR VILLA', True, white)
     
     # creating a text surface on which text will be drawn
     title_rect = title.get_rect()
-    title_rect.midtop = (window_x//2, window_y//3)
+    title_rect.midtop = (window_x//2, window_y//3 + 10)
+    frame1 = Rect(0, 0, 760, 255)
+    frame1.midtop = (window_x//2, window_y//3)
+    frame2 = Rect(0, 0, 740, 235)
+    frame2.midtop = (window_x//2, window_y//3 + 10)
+    pygame.draw.rect(game_window, cycle1_color, frame1)
+    pygame.draw.rect(game_window, black, frame2)
     game_window.blit(title, title_rect)
     
     press_rect = press_key_text.get_rect()
