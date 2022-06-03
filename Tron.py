@@ -5,6 +5,7 @@ import eyed3
 import RPi.GPIO as GPIO
 import serial
 import IntegradoraMod4OLED
+import random
 from pygame.locals import *
 from pygame.compat import geterror
 from pygame import mixer
@@ -51,7 +52,7 @@ def loadImage(name, colorkey=None):
         return image, image.get_rect()
     return image
 #//////////////////////////////////////////////////////
-
+boostFlag = False
 #Window Size
 global window_x
 window_x = 1200
@@ -82,7 +83,7 @@ fps = pygame.time.Clock()
 
 class lightCycle (pygame.sprite.Sprite):
    
-    def __init__(self, position, body, direction, change_to, color, hearts, cube_size, image_name, sprites):
+    def __init__(self, position, body, direction, change_to, color, hearts, cube_size, image_name, sprites, boost):
       #//////////////////////////////////////////////
       pygame.sprite.Sprite.__init__(self) #call Sprite initializer
       self.position = position
@@ -95,6 +96,7 @@ class lightCycle (pygame.sprite.Sprite):
       self.image_name = image_name
       self.image, self.rect = loadImage(self.image_name,-1)
       self.sprites = sprites
+      self.boost = boost
       #/////////////////////////////////////////////
       
     def movementRight(self):
@@ -124,8 +126,7 @@ class lightCycle (pygame.sprite.Sprite):
           self.direction = 'RIGHT'
           self.rect.midright = (self.position[0]-22, self.position[1]+14)
 
-    def light(self):
-        movementSize = 5
+    def light(self, movementSize):
         if self.direction == 'UP':
             self.image_name = self.sprites[0]
             self.position[1] -= movementSize
@@ -158,6 +159,7 @@ class lightCycle (pygame.sprite.Sprite):
         newpos = self.rect.move((movementX, movementY))
         self.rect = newpos
         game_window.fill(black)
+            
     
     def explosion(self):
         explosion_sound.play()
@@ -189,6 +191,18 @@ class lightCycle (pygame.sprite.Sprite):
         game_window.fill((0,0,0))
         pygame.display.update()
 
+def boost():
+    if lightCycle1.boost > 0 :
+        lightCycle1.light(cube_size)
+        #lightCycle2.body.pop(-1)
+        #lightCycle2.light(0)
+        lightCycle1.boost -= 1
+        print(boost)
+    if lightCycle2.boost > 0:
+        lightCycle2.light(cube_size)
+        #lightCycle2.body.pop(-1)
+        #lightCycle1.light(0)
+        lightCycle2.boost -= 1
 
 def start():
     my_font = pygame.font.SysFont('calibri', 50)
@@ -277,6 +291,8 @@ def winner(player):
     IntegradoraMod4OLED.displayOLED(lightCycle1.hearts, lightCycle2.hearts)
     #pygame.quit()
     #quit()
+    
+
 
 def button1_callback(channel):
     lightCycle1.movementUp()
@@ -291,8 +307,8 @@ def button4_callback(channel):
     lightCycle1.movementRight()
     lightCycle1.movementRestriction(lightCycle2.direction)
 
-lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3, cube_size, cycle1_sprites[2], cycle1_sprites)
-lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3, cube_size, cycle2_sprites[0], cycle2_sprites)
+lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3, cube_size, cycle1_sprites[2], cycle1_sprites, 0)
+lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3, cube_size, cycle2_sprites[0], cycle2_sprites, 0)
 
 #/////////////////////////////////////////////////////////////////////
 allsprites = pygame.sprite.RenderPlain((lightCycle1, lightCycle2))
@@ -356,8 +372,9 @@ while True:
                 lightCycle2.movementRight()
                 lightCycle2.movementRestriction(lightCycle2.direction)
  # LightCycle movement
-    lightCycle1.light()
-    lightCycle2.light()
+    lightCycle1.light(cube_size)
+    lightCycle2.light(cube_size)
+    boost()
 
     for pos in lightCycle1.body:
         pygame.draw.rect(game_window, lightCycle1.color, pygame.Rect(pos[0], pos[1], cube_size, cube_size))
@@ -398,6 +415,10 @@ while True:
             lightCycle1.explosion()
             gameOver(False)
             break
+    if (random.randint(0,10) == 5 and not(boostFlag)):
+        #pos = boostPosition()
+        #boost = Boost(pos)
+        boostFlag = True
         
     #//////////////////////////////////////////////////////////
     allsprites.update()
