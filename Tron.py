@@ -41,6 +41,7 @@ pygame.mixer.music.play()
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, '/home/drigor130/Documentos/ActIntegradora')
 
+
 def loadImage(name, colorkey=None):
     fullname = os.path.join(data_dir, name)
     image = pygame.image.load(fullname)
@@ -79,8 +80,21 @@ cycle2_direction = 'UP'     #Initial Direction
 game_window = pygame.display.set_mode((window_x, window_y))
 fps = pygame.time.Clock()
 
+class boostObject(pygame.sprite.Sprite):
+    def __init__(self, position, cube_size, image_name):
+        pygame.sprite.Sprite.__init__(self) #call Sprite initializer
+        self.position = position
+        self.cube_size = cube_size
+        self.image_name = image_name
+        self.image, self.rect = loadImage(self.image_name, -1)
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+        
+    def generate(self):
+        print(self.position)
 
 
+      
 class lightCycle (pygame.sprite.Sprite):
    
     def __init__(self, position, body, direction, change_to, color, hearts, cube_size, image_name, sprites, boost):
@@ -190,18 +204,24 @@ class lightCycle (pygame.sprite.Sprite):
         self.change_to = change_to
         game_window.fill((0,0,0))
         pygame.display.update()
+        
+def boostPosition(Cycle1Body, Cycle2Body):
+    x_position = random.randint(20, (window_x -20) //5) * 5
+    y_position = random.randint(20, (window_y - 20)// 5) * 5
+    pos = [x_position,y_position]
+    while(pos in Cycle1Body) or (pos in Cycle2Body):
+             x_position = random.randint(20, (window_x -20) //5) * 5
+             y_position = random.randint(20, (window_y - 20)// 5) * 5
+             pos = [x_position, y_position]
+    return pos
 
 def boost():
     if lightCycle1.boost > 0 :
         lightCycle1.light(cube_size)
-        #lightCycle2.body.pop(-1)
-        #lightCycle2.light(0)
         lightCycle1.boost -= 1
         print(boost)
     if lightCycle2.boost > 0:
         lightCycle2.light(cube_size)
-        #lightCycle2.body.pop(-1)
-        #lightCycle1.light(0)
         lightCycle2.boost -= 1
 
 def start():
@@ -309,9 +329,10 @@ def button4_callback(channel):
 
 lightCycle1 = lightCycle(cycle1_position, cycle1_body, cycle1_direction, cycle1_direction, cycle1_color, 3, cube_size, cycle1_sprites[2], cycle1_sprites, 0)
 lightCycle2 = lightCycle(cycle2_position, cycle2_body, cycle2_direction, cycle1_direction, cycle2_color, 3, cube_size, cycle2_sprites[0], cycle2_sprites, 0)
+boost = boostObject([500,500], cube_size, 'ExplosionImage.png')
 
 #/////////////////////////////////////////////////////////////////////
-allsprites = pygame.sprite.RenderPlain((lightCycle1, lightCycle2))
+allsprites = pygame.sprite.RenderPlain((lightCycle1, lightCycle2, boost))
 #posiciones iniciales
 lightCycle1.rect.x = cycle1_position[0]-cube_size
 lightCycle1.rect.y = cycle1_position[1]
@@ -374,7 +395,6 @@ while True:
  # LightCycle movement
     lightCycle1.light(cube_size)
     lightCycle2.light(cube_size)
-    boost()
 
     for pos in lightCycle1.body:
         pygame.draw.rect(game_window, lightCycle1.color, pygame.Rect(pos[0], pos[1], cube_size, cube_size))
@@ -415,9 +435,19 @@ while True:
             lightCycle1.explosion()
             gameOver(False)
             break
-    if (random.randint(0,10) == 5 and not(boostFlag)):
+    if boostFlag:
+        boost.generate()
+        if (lightCycle1.position == boost.position):
+            lightCycle1.boost = 50
+            boostFlag = False
+        if (lightCycle2.position == boost.position):
+            lightCycle2.boost = 50
+            boostFlag = False
+    #if (random.randint(0,10) == 5):
+    else:
         #pos = boostPosition()
-        #boost = Boost(pos)
+        boost.position = boostPosition(lightCycle1.body, lightCycle2.body)
+        boost.generate()
         boostFlag = True
         
     #//////////////////////////////////////////////////////////
