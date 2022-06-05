@@ -252,15 +252,21 @@ def playAgain():
                     quit()
     
 def winner(player):
-    my_font = pygame.font.SysFont('calibri', 50)
+    my_font = pygame.font.SysFont('liberationsans', 50)
+    my_font2 = pygame.font.SysFont('liberationsans', 20)
+
     if player:
-        gameOver_surface = my_font.render('Winner: Player 2', True, white)
+        gameOver_surface = my_font.render('PLAYER 2 WINS', True, cycle2_color)
     else:
-        gameOver_surface = my_font.render('Winner: Player 1', True, white)
-    # creating a text surface on which text will be drawn
+        gameOver_surface = my_font.render('PLAYER 1 WINS', True, cycle1_color)
+    game_window.fill(black)
     gameOver_rect = gameOver_surface.get_rect()
-    gameOver_rect.midtop = (window_x//2, window_y//2)
+    gameOver_rect.midtop = (window_x//2, window_y - window_y//4)
     game_window.blit(gameOver_surface, gameOver_rect)
+    press_key_text = my_font2.render('PRESS r TO PLAY AGAIN OR q TO QUIT', True, white)
+    press_rect = press_key_text.get_rect()
+    press_rect.midtop = (window_x//2, window_y - window_y // 6)
+    game_window.blit(press_key_text, press_rect)
     pygame.display.flip()
     
     playAgain()      
