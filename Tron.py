@@ -54,9 +54,9 @@ def loadImage(name, colorkey=None):
 
 #Window Size
 global window_x
-window_x = 800
+window_x = 1200
 global window_y
-window_y = 600
+window_y = 800
 
 # defining colors
 black = pygame.Color(0, 0, 0)
@@ -69,7 +69,7 @@ cycle2_sprites = ["cycle2_0.jpeg", "cycle2_1.jpeg", "cycle2_2.jpeg", "cycle2_3.j
 #Pygame init
 pygame.init()
 cube_size = 5 #Size of each body element
-cycle_speed = 40
+cycle_speed = 60
 cycle1_position = [window_x//2, 50]
 cycle2_position = [window_x//2, window_y - 50]
 cycle1_body = [[window_x//2, 50],[window_x//2, 50 - cube_size]]
@@ -252,20 +252,29 @@ def playAgain():
                     quit()
     
 def winner(player):
-    my_font = pygame.font.SysFont('liberationsans', 50)
-    my_font2 = pygame.font.SysFont('liberationsans', 20)
-
+    my_font = pygame.font.SysFont('liberationsans', 70)
+    my_font2 = pygame.font.SysFont('liberationsans', 30)
+    game_window.fill(black)
     if player:
+        image = pygame.image.load('endOrange.jpg')
+        image = pygame.transform.flip(image,1,0)
+        #image = pygame.transform.scale(image,(window_x,window_y))
+        game_window.blit(image,(0,0))
+        pygame.display.update()
         gameOver_surface = my_font.render('PLAYER 2 WINS', True, cycle2_color)
     else:
+        image = pygame.image.load('endBlue.jpg')
+        #image = pygame.transform.scale(image,(window_x,window_y))
+        game_window.blit(image,(0,0))
+        pygame.display.update()
         gameOver_surface = my_font.render('PLAYER 1 WINS', True, cycle1_color)
-    game_window.fill(black)
+    
     gameOver_rect = gameOver_surface.get_rect()
-    gameOver_rect.midtop = (window_x//2, window_y - window_y//4)
+    gameOver_rect.midtop = (window_x - window_x//3 ,  window_y//7)
     game_window.blit(gameOver_surface, gameOver_rect)
     press_key_text = my_font2.render('PRESS r TO PLAY AGAIN OR q TO QUIT', True, white)
     press_rect = press_key_text.get_rect()
-    press_rect.midtop = (window_x//2, window_y - window_y // 6)
+    press_rect.midtop = (window_x - window_x//3, window_y//7 + 70)
     game_window.blit(press_key_text, press_rect)
     pygame.display.flip()
     
